@@ -23,19 +23,86 @@ function initializeLogin() {
   });
 }
 
+function calculateTerminalSize() {
+  // Calculate the number of columns and rows based on browser size
+  const container = document.getElementById("terminal");
+  if (!container) return { cols: 80, rows: 24 };
+
+  // Use a test character to measure font dimensions
+  const testEl = document.createElement('div');
+  testEl.style.position = 'absolute';
+  testEl.style.visibility = 'hidden';
+  testEl.style.fontFamily = 'Monaco, Menlo, "Ubuntu Mono", monospace';
+  testEl.style.fontSize = '15px';
+  testEl.style.lineHeight = '1.2';
+  testEl.textContent = 'M'; // Use 'M' as it's typically the widest character
+  document.body.appendChild(testEl);
+
+  const charWidth = testEl.offsetWidth;
+  const charHeight = testEl.offsetHeight;
+  document.body.removeChild(testEl);
+
+  // Calculate terminal dimensions
+  const containerWidth = window.innerWidth;
+  const containerHeight = window.innerHeight;
+  
+  const cols = Math.floor(containerWidth / charWidth) - 2; // Leave some margin
+  const rows = Math.floor(containerHeight / charHeight) - 2; // Leave some margin
+
+  return {
+    cols: Math.max(cols, 80), // Minimum 80 columns
+    rows: Math.max(rows, 24)  // Minimum 24 rows
+  };
+}
+
 function initializeTerminal() {
   const terminalContainer = document.getElementById("terminal");
   if (!terminalContainer) return; // Skip if not on terminal page
 
-  // Initialize xterm.js
+  // Calculate initial terminal size
+  const { cols, rows } = calculateTerminalSize();
+
+  // Initialize xterm.js with dynamic sizing
   term = new Terminal({
-    cols: 80,
-    rows: 24,
+    cols: cols,
+    rows: rows,
     convertEol: true,
     cursorBlink: true,
+    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+    fontSize: 15,
+    lineHeight: 1.2,
+    theme: {
+      background: '#000000',
+      foreground: '#ffffff'
+    }
   });
+  
   term.open(terminalContainer);
   term.focus(); // Auto-focus terminal on load
+
+  // Handle window resize
+  function handleResize() {
+    const newSize = calculateTerminalSize();
+    term.resize(newSize.cols, newSize.rows);
+    
+    // Notify the SSH server about the terminal size change if connected
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: "resize",
+        data: JSON.stringify({
+          cols: newSize.cols,
+          rows: newSize.rows
+        })
+      }));
+    }
+  }
+
+  // Debounce resize events
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(handleResize, 100);
+  });
 
   // Connect to WebSocket
   ws = new WebSocket("ws://" + window.location.host + "/ws");
@@ -48,6 +115,8 @@ function initializeTerminal() {
         data: JSON.stringify({
           username: sessionStorage.getItem("username"),
           password: sessionStorage.getItem("password"),
+          cols: cols,
+          rows: rows
         }),
       }),
     );

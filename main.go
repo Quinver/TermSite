@@ -81,13 +81,23 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			var authData struct {
 				Username string `json:"username"`
 				Password string `json:"password"`
+				Cols     int    `json:"cols"`
+				Rows     int    `json:"rows"`
 			}
 			if err := json.Unmarshal([]byte(msg.Data), &authData); err != nil {
 				sshConn.sendMessage("error", "Invalid auth data")
 				continue
 			}
 			
-			if err := sshConn.connectSSH(authData.Username, authData.Password); err != nil {
+			// Set default terminal size if not provided
+			if authData.Cols == 0 {
+				authData.Cols = 80
+			}
+			if authData.Rows == 0 {
+				authData.Rows = 24
+			}
+			
+			if err := sshConn.connectSSH(authData.Username, authData.Password, authData.Cols, authData.Rows); err != nil {
 				sshConn.sendMessage("error", fmt.Sprintf("SSH connection failed: %v", err))
 				continue
 			}
@@ -101,6 +111,21 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				sshConn.mu.Unlock()
 			}
 			
+		case "resize":
+			var resizeData struct {
+				Cols int `json:"cols"`
+				Rows int `json:"rows"`
+			}
+			if err := json.Unmarshal([]byte(msg.Data), &resizeData); err != nil {
+				log.Printf("Invalid resize data: %v", err)
+				continue
+			}
+			
+			if sshConn.session != nil {
+				// Send terminal resize request to SSH session
+				sshConn.session.WindowChange(resizeData.Rows, resizeData.Cols)
+			}
+			
 		case "disconnect":
 			sshConn.disconnect()
 			return
@@ -110,7 +135,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	sshConn.disconnect()
 }
 
-func (sc *SSHConnection) connectSSH(username, password string) error {
+func (sc *SSHConnection) connectSSH(username, password string, cols, rows int) error {
 	config := &ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
@@ -138,7 +163,8 @@ func (sc *SSHConnection) connectSSH(username, password string) error {
 		ssh.TTY_OP_OSPEED: 14400,
 	}
 
-	if err := session.RequestPty("xterm-256color", 500, 50, modes); err != nil {
+	// Use the provided terminal dimensions
+	if err := session.RequestPty("xterm-256color", rows, cols, modes); err != nil {
 		session.Close()
 		client.Close()
 		return fmt.Errorf("request for pseudo terminal failed: %v", err)

@@ -1,7 +1,9 @@
 body {
     margin: 0;
+    padding: 0;
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    overflow: hidden; /* Prevent scrollbars on terminal page */
 }
 
 .login-container {
@@ -15,55 +17,55 @@ body {
 
 .login-container h1 {
     color: #333;
-    font-size: 3.5rem; /* Increased from implied ~2rem */
+    font-size: 3.5rem;
     margin-bottom: 15px;
 }
 
 .login-container h3 {
     color: #555;
-    font-size: 1.8rem; /* Increased from ~1.5rem */
+    font-size: 1.8rem;
     margin-bottom: 30px;
 }
 
 .login-form {
     background-color: #fff;
-    padding: 30px; /* Increased from 20px */
-    border-radius: 8px; /* Slightly larger for balance */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Slightly larger shadow */
-    width: 400px; /* Increased from implied ~300px */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    width: 400px;
 }
 
 .login-form label {
-    font-size: 1.2rem; /* Increased for readability */
+    font-size: 1.2rem;
     display: block;
     margin-bottom: 8px;
 }
 
 .login-form input {
-    padding: 12px; /* Increased from 8px */
-    margin: 8px 0; /* Adjusted for spacing */
-    width: 100%; /* Full width within form */
-    max-width: 320px; /* Increased from 200px */
+    padding: 12px;
+    margin: 8px 0;
+    width: 100%;
+    max-width: 320px;
     border: 1px solid #ccc;
-    border-radius: 4px; /* Slightly larger */
-    font-size: 1.1rem; /* Increased for readability */
+    border-radius: 4px;
+    font-size: 1.1rem;
 }
 
 .login-form .note {
-    font-size: 1rem; /* Increased from 0.9em */
-    color: #d32f2f; /* Red for emphasis */
+    font-size: 1rem;
+    color: #d32f2f;
     font-weight: bold;
-    margin: 8px 0 15px 0; /* Adjusted spacing */
+    margin: 8px 0 15px 0;
 }
 
 .login-form button {
-    padding: 12px 24px; /* Increased from 8px 16px */
+    padding: 12px 24px;
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 4px; /* Slightly larger */
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 1.2rem; /* Increased for readability */
+    font-size: 1.2rem;
 }
 
 .login-form button:disabled {
@@ -71,21 +73,47 @@ body {
     cursor: not-allowed;
 }
 
+/* Terminal styles */
 #terminal-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     background-color: #000;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 #terminal {
     width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Override xterm.js default styles */
+.xterm {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .xterm .xterm-viewport {
     width: 100% !important;
     height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.xterm .xterm-screen {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.xterm .xterm-helper-textarea {
+    position: absolute;
+    left: -9999px;
 }
