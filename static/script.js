@@ -28,26 +28,23 @@ function calculateTerminalSize() {
   const container = document.getElementById("terminal");
   if (!container) return { cols: 80, rows: 24 };
 
-  // Use a test character to measure font dimensions
-  const testEl = document.createElement('div');
-  testEl.style.position = 'absolute';
-  testEl.style.visibility = 'hidden';
-  testEl.style.fontFamily = 'Monaco, Menlo, "Ubuntu Mono", monospace';
-  testEl.style.fontSize = '15px';
-  testEl.style.lineHeight = '1.2';
-  testEl.textContent = 'M'; // Use 'M' as it's typically the widest character
-  document.body.appendChild(testEl);
+  // Force container to full size first
+  container.style.width = '100vw';
+  container.style.height = '100vh';
 
-  const charWidth = testEl.offsetWidth;
-  const charHeight = testEl.offsetHeight;
-  document.body.removeChild(testEl);
-
-  // Calculate terminal dimensions
+  // Use xterm.js default font metrics (more reliable)
+  const charWidth = 7.234375; // Default xterm.js character width
+  const charHeight = 17; // Default xterm.js line height
+  
+  // Get actual viewport dimensions
   const containerWidth = window.innerWidth;
   const containerHeight = window.innerHeight;
   
-  const cols = Math.floor(containerWidth / charWidth) - 2; // Leave some margin
-  const rows = Math.floor(containerHeight / charHeight) - 2; // Leave some margin
+  // Calculate terminal dimensions with no margin to maximize space
+  const cols = Math.floor(containerWidth / charWidth);
+  const rows = Math.floor(containerHeight / charHeight);
+
+  console.log(`Terminal size: ${cols}x${rows} (${containerWidth}x${containerHeight})`);
 
   return {
     cols: Math.max(cols, 80), // Minimum 80 columns
@@ -68,22 +65,39 @@ function initializeTerminal() {
     rows: rows,
     convertEol: true,
     cursorBlink: true,
-    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+    fontFamily: 'courier-new, courier, monospace',
     fontSize: 15,
-    lineHeight: 1.2,
+    lineHeight: 1.0,
     theme: {
       background: '#000000',
       foreground: '#ffffff'
-    }
+    },
+    allowTransparency: false
   });
   
   term.open(terminalContainer);
-  term.focus(); // Auto-focus terminal on load
+  
+  // Force fit to container after opening
+  setTimeout(() => {
+    if (term.element) {
+      term.element.style.width = '100%';
+      term.element.style.height = '100%';
+    }
+    term.focus();
+  }, 100);
 
   // Handle window resize
   function handleResize() {
     const newSize = calculateTerminalSize();
     term.resize(newSize.cols, newSize.rows);
+    
+    // Force element sizing after resize
+    setTimeout(() => {
+      if (term.element) {
+        term.element.style.width = '100vw';
+        term.element.style.height = '100vh';
+      }
+    }, 50);
     
     // Notify the SSH server about the terminal size change if connected
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -102,6 +116,11 @@ function initializeTerminal() {
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(handleResize, 100);
+  });
+
+  // Also handle orientation change on mobile
+  window.addEventListener('orientationchange', () => {
+    setTimeout(handleResize, 200);
   });
 
   // Connect to WebSocket

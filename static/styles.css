@@ -75,45 +75,65 @@ body {
 
 /* Terminal styles */
 #terminal-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #000;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: #000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
 #terminal {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-/* Override xterm.js default styles */
-.xterm {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
     margin: 0 !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Override xterm.js default styles aggressively */
+.xterm {
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
 }
 
 .xterm .xterm-viewport {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
     margin: 0 !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
 }
 
 .xterm .xterm-screen {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    box-sizing: border-box !important;
+}
+
+.xterm canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    box-sizing: border-box !important;
 }
 
 .xterm .xterm-helper-textarea {
-    position: absolute;
-    left: -9999px;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Remove any default margins/padding from html and body on terminal page */
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
 }
