@@ -138,7 +138,7 @@ func (sc *SSHConnection) connectSSH(username, password string) error {
 		ssh.TTY_OP_OSPEED: 14400,
 	}
 
-	if err := session.RequestPty("xterm-256color", 210, 50, modes); err != nil {
+	if err := session.RequestPty("xterm-256color", 500, 50, modes); err != nil {
 		session.Close()
 		client.Close()
 		return fmt.Errorf("request for pseudo terminal failed: %v", err)
